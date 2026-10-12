@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_shipment_list" model="ir.ui.view">
+        <field name="name">dhl.shipment.list</field>
+        <field name="model">dhl.shipment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="consignee_name"/>
+                <field name="consignee_country_id" optional="show"/>
+                <field name="tracking_number"/>
+                <field name="product_code" optional="hide"/>
+                <field name="total_weight" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="shipping_cost" optional="hide" sum="Total"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'ready', 'validating')" decoration-primary="state in ('created', 'in_transit')" decoration-success="state == 'delivered'" decoration-danger="state in ('creation_failed', 'delivery_failed')" decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_shipment_form" model="ir.ui.view">
+        <field name="name">dhl.shipment.form</field>
+        <field name="model">dhl.shipment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_mark_ready" string="Mark as Ready" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_create_at_dhl" string="Create at DHL" type="object" class="btn-primary" invisible="state != 'ready'"/>
+                    <button name="action_refresh_tracking" string="Refresh tracking" type="object" invisible="not tracking_number or state not in ('created', 'in_transit', 'delivery_failed')"/>
+                    <button name="action_confirm_no_dhl_booking" string="Confirm No DHL Booking" type="object" class="btn-warning"
+                            invisible="not creation_result_unknown" groups="dhl_logistics_center.group_dhl_manager"
+                            confirm="Only continue after checking the DHL portal and confirming no shipment was booked."/>
+                    <button name="action_reset_draft" string="Back to Draft" type="object" invisible="state not in ('ready', 'creation_failed', 'delivery_failed', 'cancelled')"/>
+                    <button name="action_cancel" string="Cancel Shipment" type="object" invisible="state in ('cancelled', 'delivered')" confirm="Cancel this shipment?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,created,in_transit,delivered,creation_failed,delivery_failed"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state not in ('creation_failed', 'delivery_failed') or not error_message">
+                        <strong>Problem:</strong>
+                        <field name="error_message" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="not creation_result_unknown">
+                        DHL may have accepted the booking but Odoo did not receive a conclusive response. Do not retry.
+                        Check the DHL portal. A manager must confirm no booking exists before this record can be reset.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="environment != 'sandbox'">
+                        Connected to the DHL sandbox. Tracking numbers are test data.
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="order_id" readonly="state != 'draft'"/>
+                            <field name="customer_id"/>
+                            <field name="address_id" readonly="state != 'draft'"/>
+                            <field name="product_code" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="connection_id" readonly="state != 'draft'"/>
+                            <field name="environment" invisible="1"/>
+                            <field name="tracking_number"/>
+                            <field name="creation_result_unknown" readonly="1" groups="dhl_logistics_center.group_dhl_manager"/>
+                            <field name="tracking_url" widget="url" invisible="not tracking_url"/>
+                            <field name="total_weight"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="shipping_cost"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Packages" name="packages">
+                            <field name="package_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="weight"/>
+                                    <field name="length"/>
+                                    <field name="width"/>
+                                    <field name="height"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Consignee" name="consignee">
+                            <group>
+                                <group>
+                                    <field name="consignee_name" readonly="state != 'draft'"/>
+                                    <field name="consignee_company" readonly="state != 'draft'"/>
+                                    <field name="consignee_street" readonly="state != 'draft'"/>
+                                    <field name="consignee_street_number" readonly="state != 'draft'"/>
+                                    <field name="consignee_address_line2" readonly="state != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="consignee_zip" readonly="state != 'draft'"/>
+                                    <field name="consignee_city" readonly="state != 'draft'"/>
+                                    <field name="consignee_country_id" readonly="state != 'draft'"/>
+                                    <field name="consignee_email" readonly="state != 'draft'"/>
+                                    <field name="consignee_phone" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Shipper" name="shipper">
+                            <group>
+                                <group>
+                                    <field name="shipper_name" readonly="state != 'draft'"/>
+                                    <field name="shipper_company" readonly="state != 'draft'"/>
+                                    <field name="shipper_street" readonly="state != 'draft'"/>
+                                    <field name="shipper_street_number" readonly="state != 'draft'"/>
+                                </group>
+                                <group>
+                                    <field name="shipper_zip" readonly="state != 'draft'"/>
+                                    <field name="shipper_city" readonly="state != 'draft'"/>
+                                    <field name="shipper_country_id" readonly="state != 'draft'"/>
+                                    <field name="shipper_email" readonly="state != 'draft'"/>
+                                    <field name="shipper_phone" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Tracking" name="tracking">
+                            <field name="tracking_ids">
+                                <list>
+                                    <field name="event_time"/>
+                                    <field name="status_text"/>
+                                    <field name="normalized_status" widget="badge" decoration-success="normalized_status == 'delivered'" decoration-danger="normalized_status in ('delivery_failed', 'exception', 'returned')" decoration-primary="normalized_status in ('in_transit', 'out_for_delivery')"/>
+                                    <field name="location"/>
+                                    <field name="source"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Label" name="label">
+                            <group>
+                                <field name="dhl_shipment_no"/>
+                                <field name="label_filename" invisible="1"/>
+                                <field name="label" filename="label_filename"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dhl_shipment_search" model="ir.ui.view">
+        <field name="name">dhl.shipment.search</field>
+        <field name="model">dhl.shipment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', '|', ('name', 'ilike', self), ('tracking_number', 'ilike', self), ('consignee_name', 'ilike', self), ('order_id', 'ilike', self)]" string="Shipment / Tracking / Consignee"/>
+                <field name="tracking_number"/>
+                <field name="order_id"/>
+                <filter name="f_ready" string="Ready" domain="[('state', '=', 'ready')]"/>
+                <filter name="f_transit" string="In Transit" domain="[('state', '=', 'in_transit')]"/>
+                <filter name="f_failed" string="Failed" domain="[('state', 'in', ('creation_failed', 'delivery_failed'))]"/>
+                <filter name="f_label" string="Has Label" domain="[('label_filename', '!=', False)]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_country" string="Destination" context="{'group_by': 'consignee_country_id'}"/>
+                    <filter name="group_date" string="Created" context="{'group_by': 'create_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dhl_shipment" model="ir.actions.act_window">
+        <field name="name">All Shipments</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No shipments yet</p>
+            <p>Open an order and click <em>Create Shipment</em>.
+            </p>
+        </field>
+    </record>
+    <record id="action_dhl_shipment_new" model="ir.actions.act_window">
+        <field name="name">Create Shipment</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">form</field>
+    </record>
+    <record id="action_dhl_shipment_ready" model="ir.actions.act_window">
+        <field name="name">Ready Shipments</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'ready')]</field>
+    </record>
+    <record id="action_dhl_shipment_transit" model="ir.actions.act_window">
+        <field name="name">In Transit</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'in_transit')]</field>
+    </record>
+    <record id="action_dhl_shipment_delivered" model="ir.actions.act_window">
+        <field name="name">Delivered Shipments</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'delivered')]</field>
+    </record>
+    <record id="action_dhl_shipment_failed" model="ir.actions.act_window">
+        <field name="name">Failed Shipments</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('creation_failed', 'delivery_failed'))]</field>
+    </record>
+    <record id="action_dhl_shipment_cancelled" model="ir.actions.act_window">
+        <field name="name">Cancelled Shipments</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'cancelled')]</field>
+    </record>
+    <record id="action_dhl_label" model="ir.actions.act_window">
+        <field name="name">All Labels</field>
+        <field name="res_model">dhl.shipment</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('label_filename', '!=', False)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No labels yet</p>
+            <p>Labels appear here after DHL shipment creation returns label data.</p>
+        </field>
+    </record>
+</odoo>

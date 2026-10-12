@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_connection_list" model="ir.ui.view">
+        <field name="name">dhl.connection.list</field>
+        <field name="model">dhl.connection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="environment" widget="badge" decoration-warning="environment == 'sandbox'" decoration-danger="environment == 'production'"/>
+                <field name="state" widget="badge" decoration-success="state == 'connected'" decoration-danger="state in ('auth_error', 'api_error')" decoration-muted="state == 'disconnected'"/>
+                <field name="last_connected"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_connection_form" model="ir.ui.view">
+        <field name="name">dhl.connection.form</field>
+        <field name="model">dhl.connection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" string="Authenticate &amp; Test Connection" type="object" class="btn-primary" groups="dhl_logistics_center.group_dhl_manager"/>
+                    <button name="action_disconnect" string="Disconnect" type="object" invisible="state != 'connected'" groups="dhl_logistics_center.group_dhl_manager" confirm="Disconnect DHL? Shipping operations pause until you reconnect."/>
+                    <field name="state" widget="statusbar" statusbar_visible="disconnected,connected,auth_error,api_error"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="state not in ('auth_error', 'api_error')">
+                        <strong>Connection failed.</strong>
+                        <field name="last_error" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-success" role="alert" invisible="state != 'connected'">
+                        <strong>Connected.</strong> DHL Parcel DE API connection is active.
+                    </div>
+                    <div class="alert alert-warning" role="alert" invisible="environment != 'sandbox'">
+                        Sandbox mode: parcels and tracking numbers are test data and are not real shipments.
+                    </div>
+                    <group>
+                        <group string="Connection">
+                            <field name="name"/>
+                            <field name="environment" widget="radio" options="{'horizontal': true}"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Status">
+                            <field name="last_connected"/>
+                            <field name="token_expires_at" groups="dhl_logistics_center.group_dhl_manager"/>
+                        </group>
+                    </group>
+                    <group string="DHL Parcel DE Shipping Credentials" groups="dhl_logistics_center.group_dhl_manager">
+                        <group>
+                            <field name="api_key" password="True"/>
+                            <field name="api_secret" password="True"/>
+                            <field name="billing_number"/>
+                        </group>
+                        <group>
+                            <field name="username" password="True"/>
+                            <field name="password" password="True"/>
+                        </group>
+                    </group>
+                    <group string="Parcel DE Tracking Credentials (Optional Separate Keys)" groups="dhl_logistics_center.group_dhl_manager">
+                        <group>
+                            <field name="tracking_api_key" password="True"/>
+                            <field name="tracking_api_secret" password="True"/>
+                        </group>
+                        <group>
+                            <field name="tracking_username" password="True"/>
+                            <field name="tracking_password" password="True"/>
+                        </group>
+                    </group>
+                    <p class="text-muted">
+                        Saving credentials marks the connection as disconnected. Click
+                        <em>Authenticate &amp; Test Connection</em> to verify them with DHL.
+                    </p>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dhl_connection" model="ir.actions.act_window">
+        <field name="name">DHL Connection</field>
+        <field name="res_model">dhl.connection</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Connect your DHL account</p>
+            <p>Create a connection, enter your API credentials and test it. The navbar shows the live status.</p>
+        </field>
+    </record>
+    <record id="action_dhl_connection_new" model="ir.actions.act_window">
+        <field name="name">Connect DHL</field>
+        <field name="res_model">dhl.connection</field>
+        <field name="view_mode">form</field>
+    </record>
+</odoo>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Agent -->
+    <record id="view_dhl_agent_list" model="ir.ui.view">
+        <field name="name">dhl.agent.list</field>
+        <field name="model">dhl.agent</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state" widget="badge" decoration-success="state == 'running'" decoration-warning="state == 'paused'" decoration-danger="state == 'error'" decoration-muted="state == 'stopped'"/>
+                <field name="last_run"/>
+                <field name="last_summary"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_agent_form" model="ir.ui.view">
+        <field name="name">dhl.agent.form</field>
+        <field name="model">dhl.agent</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_run_check_button" string="Run check now" type="object" class="btn-primary"/>
+                    <button name="action_start" string="Start" type="object" invisible="state in ('running', 'paused')"/>
+                    <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"/>
+                    <button name="action_resume" string="Resume" type="object" invisible="state != 'paused'"/>
+                    <button name="action_stop" string="Stop" type="object" invisible="state == 'stopped'" confirm="Stop the agent? Scheduled health checks will no longer run."/>
+                    <field name="state" widget="statusbar" statusbar_visible="stopped,running,paused"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_logs" icon="fa-list">
+                            <field name="log_count" widget="statinfo" string="Logs"/>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_view_tasks" icon="fa-tasks">
+                            <field name="total_tasks" widget="statinfo" string="Tasks"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="alert alert-info" role="alert">
+                        <strong>What the agent does today:</strong> a read-only health check every 15 minutes while running.
+                        It reports disconnected DHL/Amazon connections, missing package data, blocked shipments, and failed API calls.
+                        Amazon order/listing sync and a safe retry queue are available. The agent does not automatically create or cancel DHL shipments.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'error'">
+                        <field name="last_error" nolabel="1"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="last_run"/>
+                            <field name="next_run"/>
+                        </group>
+                        <group>
+                            <field name="last_summary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Recent logs" name="logs">
+                            <field name="log_ids" readonly="1">
+                                <list>
+                                    <field name="create_date" string="When"/>
+                                    <field name="log_type" widget="badge" decoration-success="log_type == 'success'" decoration-warning="log_type == 'warning'" decoration-danger="log_type == 'error'" decoration-info="log_type == 'info'"/>
+                                    <field name="message"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dhl_agent" model="ir.actions.act_window">
+        <field name="name">AI Agent</field>
+        <field name="res_model">dhl.agent</field>
+        <field name="view_mode">form,list</field>
+        <field name="res_id" ref="agent_default"/>
+    </record>
+
+    <!-- Agent Task Views -->
+    <record id="view_dhl_agent_task_list" model="ir.ui.view">
+        <field name="name">dhl.agent.task.list</field>
+        <field name="model">dhl.agent.task</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="agent_id"/>
+                <field name="name"/>
+                <field name="task_type"/>
+                <field name="state"/>
+                <field name="priority"/>
+                <field name="started_at"/>
+                <field name="duration_seconds"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_agent_task_form" model="ir.ui.view">
+        <field name="name">dhl.agent.task.form</field>
+        <field name="model">dhl.agent.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start" string="Start" type="object" class="btn-primary" invisible="state != 'pending'"/>
+                    <button name="action_complete" string="Complete" type="object" invisible="state != 'running'"/>
+                    <button name="action_fail" string="Mark Failed" type="object" invisible="state != 'running'"/>
+                    <button name="action_retry" string="Retry" type="object" invisible="state != 'failed'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('completed', 'cancelled')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="agent_id"/>
+                            <field name="name"/>
+                            <field name="task_type"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="started_at"/>
+                            <field name="completed_at"/>
+                            <field name="duration_seconds"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Related Record">
+                            <field name="model_name"/>
+                            <field name="res_id"/>
+                            <field name="record_name"/>
+                        </group>
+                    </group>
+                    <group string="Error Details" invisible="not error_message">
+                        <field name="error_message" nolabel="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dhl_agent_task" model="ir.actions.act_window">
+        <field name="name">Agent Tasks</field>
+        <field name="res_model">dhl.agent.task</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Agent Log Views -->
+    <record id="view_dhl_agent_log_list" model="ir.ui.view">
+        <field name="name">dhl.agent.log.list</field>
+        <field name="model">dhl.agent.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="agent_id"/>
+                <field name="message"/>
+                <field name="log_type" widget="badge" decoration-success="log_type == 'success'" decoration-warning="log_type == 'warning'" decoration-danger="log_type == 'error'"/>
+                <field name="create_date"/>
+                <field name="task_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_agent_log_form" model="ir.ui.view">
+        <field name="name">dhl.agent.log.form</field>
+        <field name="model">dhl.agent.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="agent_id"/>
+                        <field name="log_type"/>
+                        <field name="create_date"/>
+                    </group>
+                    <group>
+                        <field name="task_id"/>
+                        <field name="user_id"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Related Record">
+                        <field name="model_name"/>
+                        <field name="res_id"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="message" nolabel="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dhl_agent_log" model="ir.actions.act_window">
+        <field name="name">Agent Logs</field>
+        <field name="res_model">dhl.agent.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

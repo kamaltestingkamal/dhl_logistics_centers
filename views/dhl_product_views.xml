@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_product_list" model="ir.ui.view">
+        <field name="name">dhl.product.list</field>
+        <field name="model">dhl.product</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sku"/>
+                <field name="asin" optional="show"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="weight"/>
+                <field name="hs_code" optional="hide"/>
+                <field name="country_of_origin_id" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="price"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dhl_product_form" model="ir.ui.view">
+        <field name="name">dhl.product.form</field>
+        <field name="model">dhl.product</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Product name"/></h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="sku"/>
+                            <field name="asin"/>
+                            <field name="marketplace"/>
+                            <field name="source"/>
+                            <field name="sync_state" widget="badge"/>
+                            <field name="last_sync_at" readonly="1"/>
+                            <field name="category_id"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="price"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Shipping">
+                            <field name="weight"/>
+                            <label for="length" string="Dimensions (L×W×H cm)"/>
+                            <div class="d-flex gap-2">
+                                <field name="length" placeholder="L"/>
+                                <field name="width" placeholder="W"/>
+                                <field name="height" placeholder="H"/>
+                            </div>
+                        </group>
+                    </group>
+                    <group string="Customs Information">
+                        <field name="hs_code"/>
+                        <field name="country_of_origin_id"/>
+                    </group>
+                    <group string="Description"><field name="description" nolabel="1"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dhl_product_search" model="ir.ui.view">
+        <field name="name">dhl.product.search</field>
+        <field name="model">dhl.product</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="sku"/>
+                <field name="asin"/>
+                <field name="hs_code"/>
+                <filter name="no_weight" string="Missing Weight" domain="[('weight', '=', 0)]"/>
+                <filter name="no_hs" string="Missing HS Code" domain="[('hs_code', '=', False)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_dhl_product" model="ir.actions.act_window">
+        <field name="name">Products</field>
+        <field name="res_model">dhl.product</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Add your first product</p>
+            <p>Products carry the weight, dimensions and customs data used to build shipments.</p>
+        </field>
+    </record>
+    <record id="action_dhl_product_new" model="ir.actions.act_window">
+        <field name="name">New Product</field>
+        <field name="res_model">dhl.product</field>
+        <field name="view_mode">form</field>
+    </record>
+    <record id="action_dhl_product_customs" model="ir.actions.act_window">
+        <field name="name">Customs Information</field>
+        <field name="res_model">dhl.product</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_no_hs': 1}</field>
+    </record>
+
+    <record id="view_dhl_product_category_list" model="ir.ui.view">
+        <field name="name">dhl.product.category.list</field>
+        <field name="model">dhl.product.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="product_count"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_dhl_product_category" model="ir.actions.act_window">
+        <field name="name">Categories</field>
+        <field name="res_model">dhl.product.category</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

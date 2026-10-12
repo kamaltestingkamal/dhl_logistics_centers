@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_return_list" model="ir.ui.view">
+        <field name="name">dhl.return.list</field>
+        <field name="model">dhl.return</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="customer_id"/>
+                <field name="reason"/>
+                <field name="return_tracking_number"/>
+                <field name="state" widget="badge" decoration-info="state in ('draft', 'requested')" decoration-primary="state in ('label_created', 'in_transit')" decoration-success="state in ('received', 'completed')" decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dhl_return_form" model="ir.ui.view">
+        <field name="name">dhl.return.form</field>
+        <field name="model">dhl.return</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_request" string="Request Return" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_received" string="Mark Received" type="object" invisible="state not in ('requested', 'label_created', 'in_transit')"/>
+                    <button name="action_complete" string="Complete" type="object" class="btn-primary" invisible="state != 'received'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('completed', 'cancelled')" confirm="Cancel this return?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,requested,label_created,in_transit,received,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="order_id"/>
+                            <field name="customer_id"/>
+                            <field name="shipment_id"/>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="return_tracking_number"/>
+                            <field name="return_label_filename" invisible="1"/>
+                            <field name="return_label" filename="return_label_filename"/>
+                        </group>
+                    </group>
+                    <field name="notes" placeholder="Notes..."/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="action_dhl_return" model="ir.actions.act_window">
+        <field name="name">All Returns</field>
+        <field name="res_model">dhl.return</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No returns</p><p>Create and track a return from an order. Automated DHL return-label creation is not implemented yet.</p></field>
+    </record>
+    <record id="action_dhl_return_new" model="ir.actions.act_window">
+        <field name="name">New Return</field>
+        <field name="res_model">dhl.return</field>
+        <field name="view_mode">form</field>
+    </record>
+    <record id="action_dhl_return_completed" model="ir.actions.act_window">
+        <field name="name">Completed Returns</field>
+        <field name="res_model">dhl.return</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'completed')]</field>
+    </record>
+</odoo>

@@ -1,0 +1,71 @@
+// Design tokens shared by the dashboard, toasts and navbar widgets.
+// DHL Brand Theme: White background, red accents, yellow highlights
+// Based on DHL.com branding colors
+.o_web_client {
+  --dhl-font: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+
+  // DHL Brand Colors (Official)
+  --dhl-yellow: #FFCC00; // DHL signature yellow (HSL 48, 100%, 50%)
+  --dhl-yellow-dark: #F2BC00; // DHL yellow hover
+  --dhl-red: #D40A1D; // DHL signature red (HSL 357, 95%, 43%)
+  --dhl-red-dark: #B30022; // DHL red hover
+  --dhl-dark: #22262B; // DHL dark (HSL 212, 5%, 17%)
+  --dhl-white: #ffffff;
+
+  // Backgrounds - White canvas with DHL red/yellow accents
+  --dhl-canvas: #ffffff;
+  --dhl-surface: #ffffff;
+  --dhl-surface-2: #fff5f5; // Light red tint
+  --dhl-line: #e5e7eb;
+  --dhl-line-strong: #d1d5db;
+
+  // Text Colors
+  --dhl-ink: #111827;
+  --dhl-ink-2: #374151;
+  --dhl-muted: #6b7280;
+  --dhl-faint: #9ca3af;
+
+  // Signal/Accent Colors
+  --dhl-signal: #D40A1D;
+  --dhl-signal-hover: #B30022;
+  --dhl-signal-ink: #ffffff;
+
+  // Status Colors
+  --dhl-green: #10b981;
+  --dhl-red: #D40A1D;
+  --dhl-amber: #f59e0b;
+  --dhl-blue: #3b82f6;
+  --dhl-green-bg: rgba(16, 185, 129, 0.12);
+  --dhl-red-bg: rgba(212, 10, 29, 0.12);
+  --dhl-amber-bg: rgba(245, 158, 11, 0.12);
+  --dhl-blue-bg: rgba(59, 130, 246, 0.12);
+  --dhl-grey-bg: rgba(107, 114, 128, 0.12);
+
+  // Border Radius
+  --dhl-radius: 12px;
+  --dhl-radius-sm: 8px;
+  --dhl-radius-lg: 16px;
+
+  // Shadows
+  --dhl-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --dhl-shadow-pop: 0 20px 40px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --dhl-shadow-strong: 0 4px 20px rgba(212, 10, 29, 0.15); // DHL red shadow
+}
+
+[data-bs-theme="light"] .o_web_client {
+  --dhl-canvas: #f8f9fa;
+  --dhl-surface: #ffffff;
+  --dhl-surface-2: #fffbeb;
+  --dhl-line: #e5e7eb;
+  --dhl-line-strong: #d1d5db;
+  --dhl-ink: #111827;
+  --dhl-ink-2: #374151;
+  --dhl-muted: #6b7280;
+  --dhl-faint: #9ca3af;
+  --dhl-green: #10b981;
+  --dhl-red: #dc2626;
+  --dhl-amber: #f59e0b;
+  --dhl-blue: #3b82f6;
+  --dhl-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  --dhl-shadow-pop: 0 20px 40px -4px rgba(0, 0, 0, 0.15), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+}

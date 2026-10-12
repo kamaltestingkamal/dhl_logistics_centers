@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dhl_logistics_center.ComingSoon">
+        <div class="o_action dhl_soon">
+            <div class="dhl_soon_card">
+                <span class="dhl_phase" t-esc="info.phase"/>
+                <h1 t-esc="info.title"/>
+                <p t-esc="info.description"/>
+                <ol t-if="info.steps">
+                    <li t-foreach="info.steps" t-as="step" t-key="step_index" t-esc="step"/>
+                </ol>
+            </div>
+        </div>
+    </t>
+</templates>

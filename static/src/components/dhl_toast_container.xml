@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dhl_logistics_center.ToastContainer">
+        <div class="dhl_toasts" t-if="state.toasts.length" aria-live="polite">
+            <div t-foreach="state.toasts" t-as="toast" t-key="toast.uid" t-attf-class="dhl_toast dhl_toast_#{toast.type} #{toast.res_id ? 'is_link' : ''}" role="status" t-on-click="() => this.open(toast)" t-on-mouseenter="() => this.dhl.pause(toast.uid)" t-on-mouseleave="() => this.dhl.resume(toast.uid)">
+                <span class="dhl_toast_icon" aria-hidden="true" t-esc="icon(toast.type)"/>
+                <div class="dhl_toast_body">
+                    <div class="dhl_toast_title" t-esc="toast.title"/>
+                    <div class="dhl_toast_msg" t-if="toast.message" t-esc="toast.message"/>
+                    <div class="dhl_toast_rec" t-if="toast.record_name" t-esc="toast.record_name"/>
+                </div>
+                <button class="dhl_toast_close" aria-label="Dismiss" t-on-click="(ev) => this.close(toast, ev)">×</button>
+                <span class="dhl_toast_bar" t-att-style="'animation-duration:' + toast.duration + 'ms'"/>
+            </div>
+        </div>
+    </t>
+</templates>

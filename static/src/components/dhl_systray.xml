@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dhl_logistics_center.Systray">
+        <div class="dhl_systray" t-if="state.visible" t-ref="root">
+            <!-- Connection state: green / red / yellow / orange -->
+            <button t-attf-class="dhl_conn is_#{dhlStatus.state}" t-on-click="openConnection" t-att-title="dhlStatus.label + (dhlStatus.environment ? ' (' + dhlStatus.environment + ')' : '')">
+                <span class="dhl_conn_dot" aria-hidden="true"/>
+                <span class="dhl_conn_label" t-esc="dhlStatus.label"/>
+            </button>
+
+            <!-- Quick create -->
+            <div class="dhl_pop_wrap">
+                <button class="dhl_plus" aria-label="Quick create" t-att-aria-expanded="state.open === 'create'" t-on-click="() => this.toggle('create')">
+                    <i class="fa fa-plus"/>
+                </button>
+                <div class="dhl_pop dhl_menu" t-if="state.open === 'create'" role="menu">
+                    <div class="dhl_menu_title">Quick create</div>
+                    <button t-foreach="quickCreate" t-as="entry" t-key="entry.label" class="dhl_menu_item" role="menuitem" t-on-click="() => this.quick(entry)">
+                        <span class="dhl_menu_ico">
+                            <i t-attf-class="fa #{entry.icon}"/>
+                        </span>
+                        <t t-esc="entry.label"/>
+                    </button>
+                    <button class="dhl_menu_item" t-on-click="openAmazon" role="menuitem">
+                        <span class="dhl_menu_ico">
+                            <i class="fa fa-amazon"/>
+                        </span>
+                        Connect Amazon
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notification bell -->
+            <div class="dhl_pop_wrap">
+                <button class="dhl_bell" aria-label="Notifications" t-att-aria-expanded="state.open === 'bell'" t-on-click="() => this.toggle('bell')">
+                    <i class="fa fa-bell-o"/>
+                    <span class="dhl_bell_count" t-if="shared.unread" t-esc="shared.unread > 99 ? '99+' : shared.unread"/>
+                </button>
+                <div class="dhl_pop dhl_panel" t-if="state.open === 'bell'">
+                    <div class="dhl_panel_head">
+                        <div class="dhl_panel_title">Notifications</div>
+                        <button class="dhl_link_btn" t-if="shared.unread" t-on-click="markAllRead">Mark all as read</button>
+                    </div>
+                    <div class="dhl_tabs">
+                        <button t-attf-class="dhl_tab #{state.tab === 'all' ? 'on' : ''}" t-on-click="() => state.tab = 'all'">All</button>
+                        <button t-attf-class="dhl_tab #{state.tab === 'unread' ? 'on' : ''}" t-on-click="() => state.tab = 'unread'">
+                            Unread <span t-if="shared.unread" class="dhl_tab_n" t-esc="shared.unread"/>
+                        </button>
+                    </div>
+                    <div class="dhl_panel_list">
+                        <div t-if="!shownItems.length" class="dhl_panel_empty">
+                            <strong t-if="state.tab === 'unread'">No unread notifications</strong>
+                            <strong t-else="">Nothing here yet</strong>
+                            <span>Errors and important events from DHL operations stay here until you read them.</span>
+                        </div>
+                        <button t-foreach="shownItems" t-as="item" t-key="item.id" t-attf-class="dhl_note dhl_note_#{item.type} #{item.is_read ? '' : 'is_unread'}" t-on-click="() => this.openItem(item)">
+                            <span class="dhl_note_icon" aria-hidden="true" t-esc="icon(item.type)"/>
+                            <span class="dhl_note_body">
+                                <span class="dhl_note_title" t-esc="item.title"/>
+                                <span class="dhl_note_msg" t-if="item.message" t-esc="item.message"/>
+                                <span class="dhl_note_meta">
+                                    <t t-if="item.record_name">
+                                        <t t-esc="item.record_name"/>
+ · </t>
+                                    <t t-esc="timeAgo(item)"/>
+                                </span>
+                            </span>
+                            <span class="dhl_note_dot" t-if="!item.is_read" aria-label="Unread"/>
+                        </button>
+                    </div>
+                    <button class="dhl_panel_foot" t-on-click="openAll">View all notifications</button>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_dhl_root" name="DHL Logistics" sequence="10" web_icon="dhl_logistics_center,static/description/icon.svg" groups="dhl_logistics_center.group_dhl_user,dhl_logistics_center.group_dhl_operator,dhl_logistics_center.group_dhl_readonly"/>
+
+    <!-- 1 Dashboard -->
+    <menuitem id="menu_dhl_dashboard" name="Dashboard" parent="menu_dhl_root" action="action_dhl_dashboard" sequence="1"/>
+
+    <!-- 2 Orders -->
+    <menuitem id="menu_dhl_orders" name="Orders" parent="menu_dhl_root" sequence="2"/>
+    <menuitem id="menu_dhl_orders_all" name="All Orders" parent="menu_dhl_orders" action="action_dhl_order" sequence="1"/>
+    <menuitem id="menu_dhl_orders_new" name="New Order" parent="menu_dhl_orders" action="action_dhl_order_new" sequence="2"/>
+    <menuitem id="menu_dhl_orders_pending" name="Pending" parent="menu_dhl_orders" action="action_dhl_order_pending" sequence="3"/>
+    <menuitem id="menu_dhl_orders_processing" name="Processing" parent="menu_dhl_orders" action="action_dhl_order_processing" sequence="4"/>
+    <menuitem id="menu_dhl_orders_shipped" name="Shipped" parent="menu_dhl_orders" action="action_dhl_order_shipped" sequence="5"/>
+    <menuitem id="menu_dhl_orders_delivered" name="Delivered" parent="menu_dhl_orders" action="action_dhl_order_delivered" sequence="6"/>
+    <menuitem id="menu_dhl_orders_cancelled" name="Cancelled" parent="menu_dhl_orders" action="action_dhl_order_cancelled" sequence="7"/>
+    <menuitem id="menu_dhl_orders_failed" name="Failed" parent="menu_dhl_orders" action="action_dhl_order_failed" sequence="8"/>
+
+    <!-- 3 Products -->
+    <menuitem id="menu_dhl_products" name="Products" parent="menu_dhl_root" sequence="3"/>
+    <menuitem id="menu_dhl_products_all" name="All Products" parent="menu_dhl_products" action="action_dhl_product" sequence="1"/>
+    <menuitem id="menu_dhl_products_new" name="Add Product" parent="menu_dhl_products" action="action_dhl_product_new" sequence="2"/>
+    <menuitem id="menu_dhl_products_categories" name="Categories" parent="menu_dhl_products" action="action_dhl_product_category" sequence="3"/>
+    <menuitem id="menu_dhl_products_customs" name="Customs Information" parent="menu_dhl_products" action="action_dhl_product_customs" sequence="4"/>
+
+    <!-- 4 Customers -->
+    <menuitem id="menu_dhl_customers" name="Customers" parent="menu_dhl_root" sequence="4"/>
+    <menuitem id="menu_dhl_customers_all" name="All Customers" parent="menu_dhl_customers" action="action_dhl_customer" sequence="1"/>
+    <menuitem id="menu_dhl_customers_new" name="Add Customer" parent="menu_dhl_customers" action="action_dhl_customer_new" sequence="2"/>
+    <menuitem id="menu_dhl_customers_addresses" name="Addresses" parent="menu_dhl_customers" action="action_dhl_address" sequence="3"/>
+
+    <!-- 5 Shipments -->
+    <menuitem id="menu_dhl_shipments" name="Shipments" parent="menu_dhl_root" sequence="5"/>
+    <menuitem id="menu_dhl_shipments_all" name="All Shipments" parent="menu_dhl_shipments" action="action_dhl_shipment" sequence="1"/>
+    <menuitem id="menu_dhl_shipments_new" name="Create Shipment" parent="menu_dhl_shipments" action="action_dhl_shipment_new" sequence="2"/>
+    <menuitem id="menu_dhl_shipments_ready" name="Ready" parent="menu_dhl_shipments" action="action_dhl_shipment_ready" sequence="3"/>
+    <menuitem id="menu_dhl_shipments_transit" name="In Transit" parent="menu_dhl_shipments" action="action_dhl_shipment_transit" sequence="4"/>
+    <menuitem id="menu_dhl_shipments_delivered" name="Delivered" parent="menu_dhl_shipments" action="action_dhl_shipment_delivered" sequence="5"/>
+    <menuitem id="menu_dhl_shipments_failed" name="Failed" parent="menu_dhl_shipments" action="action_dhl_shipment_failed" sequence="6"/>
+    <menuitem id="menu_dhl_shipments_cancelled" name="Cancelled" parent="menu_dhl_shipments" action="action_dhl_shipment_cancelled" sequence="7"/>
+
+    <!-- 6 Tracking -->
+    <menuitem id="menu_dhl_tracking" name="Tracking" parent="menu_dhl_root" sequence="6"/>
+    <menuitem id="menu_dhl_tracking_history" name="Tracking History" parent="menu_dhl_tracking" action="action_dhl_tracking" sequence="1"/>
+    <menuitem id="menu_dhl_tracking_transit" name="In Transit" parent="menu_dhl_tracking" action="action_dhl_shipment_transit" sequence="2"/>
+    <menuitem id="menu_dhl_tracking_delivered" name="Delivered" parent="menu_dhl_tracking" action="action_dhl_tracking_delivered" sequence="3"/>
+    <menuitem id="menu_dhl_tracking_exceptions" name="Exceptions" parent="menu_dhl_tracking" action="action_dhl_tracking_exceptions" sequence="4"/>
+
+    <!-- 7 Returns -->
+    <menuitem id="menu_dhl_returns" name="Returns" parent="menu_dhl_root" sequence="7"/>
+    <menuitem id="menu_dhl_returns_all" name="All Returns" parent="menu_dhl_returns" action="action_dhl_return" sequence="1"/>
+    <menuitem id="menu_dhl_returns_new" name="New Return" parent="menu_dhl_returns" action="action_dhl_return_new" sequence="2"/>
+    <menuitem id="menu_dhl_returns_completed" name="Completed Returns" parent="menu_dhl_returns" action="action_dhl_return_completed" sequence="3"/>
+
+    <!-- 8 DHL -->
+    <menuitem id="menu_dhl_dhl" name="DHL" parent="menu_dhl_root" sequence="8"/>
+    <menuitem id="menu_dhl_dhl_connection" name="Connection" parent="menu_dhl_dhl" action="action_dhl_connection" sequence="1"/>
+    <menuitem id="menu_dhl_dhl_apilogs" name="API Logs" parent="menu_dhl_dhl" action="action_dhl_auth_log" sequence="2" groups="dhl_logistics_center.group_dhl_manager"/>
+
+    <!-- 9 Amazon -->
+    <menuitem id="menu_dhl_amazon" name="Amazon" parent="menu_dhl_root" sequence="9"/>
+    <menuitem id="menu_dhl_amazon_overview" name="Connections" parent="menu_dhl_amazon" action="action_dhl_amazon_connection" sequence="1"/>
+    <menuitem id="menu_dhl_amazon_sync" name="Sync History" parent="menu_dhl_amazon" action="action_dhl_sync_log" sequence="2"/>
+
+    <!-- 10 Rates (placeholder) -->
+    <menuitem id="menu_dhl_rates" name="Rates" parent="menu_dhl_root" action="action_dhl_soon_rates" sequence="10"/>
+
+    <!-- 11 Labels -->
+    <menuitem id="menu_dhl_labels" name="Labels" parent="menu_dhl_root" sequence="11"/>
+    <menuitem id="menu_dhl_labels_all" name="All Labels" parent="menu_dhl_labels" action="action_dhl_label" sequence="1"/>
+
+    <!-- 12 Reports -->
+    <menuitem id="menu_dhl_reports" name="Reports" parent="menu_dhl_root" sequence="12"/>
+    <menuitem id="menu_dhl_reports_export" name="Export CSV" parent="menu_dhl_reports" action="action_dhl_report_wizard" sequence="1"/>
+
+    <!-- 13 Logs -->
+    <menuitem id="menu_dhl_logs" name="Logs" parent="menu_dhl_root" sequence="13" groups="dhl_logistics_center.group_dhl_manager"/>
+    <menuitem id="menu_dhl_logs_api" name="API Logs" parent="menu_dhl_logs" action="action_dhl_api_log" sequence="1"/>
+    <menuitem id="menu_dhl_logs_sync" name="Amazon / Sync Logs" parent="menu_dhl_logs" action="action_dhl_sync_log" sequence="2"/>
+    <menuitem id="menu_dhl_logs_errors" name="Error Logs" parent="menu_dhl_logs" action="action_dhl_error_log" sequence="3"/>
+    <menuitem id="menu_dhl_logs_auth" name="Authentication Logs" parent="menu_dhl_logs" action="action_dhl_auth_log" sequence="4"/>
+
+    <!-- 14 Automation -->
+    <menuitem id="menu_dhl_automation" name="Automation" parent="menu_dhl_root" sequence="14"/>
+    <menuitem id="menu_dhl_automation_queue" name="Retry Queue" parent="menu_dhl_automation" action="action_dhl_retry_job" sequence="1"/>
+    <menuitem id="menu_dhl_automation_history" name="Automation History" parent="menu_dhl_automation" action="action_dhl_automation_log" sequence="2"/>
+
+    <!-- 15 AI Agent -->
+    <menuitem id="menu_dhl_agent" name="AI Agent" parent="menu_dhl_root" sequence="15"/>
+    <menuitem id="menu_dhl_agent_config" name="Agent" parent="menu_dhl_agent" sequence="10" action="action_dhl_agent"/>
+    <menuitem id="menu_dhl_agent_tasks" name="Tasks" parent="menu_dhl_agent" sequence="20" action="action_dhl_agent_task"/>
+    <menuitem id="menu_dhl_agent_logs" name="Logs" parent="menu_dhl_agent" sequence="30" action="action_dhl_agent_log"/>
+
+    <!-- 16 Notifications -->
+    <menuitem id="menu_dhl_notifications" name="Notifications" parent="menu_dhl_root" action="action_dhl_notification" sequence="16"/>
+
+    <!-- 17 Settings -->
+    <menuitem id="menu_dhl_settings" name="Settings" parent="menu_dhl_root" sequence="17" groups="dhl_logistics_center.group_dhl_manager"/>
+    <menuitem id="menu_dhl_settings_general" name="General" parent="menu_dhl_settings" action="action_dhl_settings" sequence="1"/>
+    <menuitem id="menu_dhl_settings_users" name="Users &amp; Permissions" parent="menu_dhl_settings" action="base.action_res_users" sequence="2"/>
+
+    <!-- 18 Help -->
+    <menuitem id="menu_dhl_help" name="Help" parent="menu_dhl_root" sequence="18"/>
+    <menuitem id="menu_dhl_help_start" name="Getting Started" parent="menu_dhl_help" action="action_dhl_help_start" sequence="1"/>
+</odoo>

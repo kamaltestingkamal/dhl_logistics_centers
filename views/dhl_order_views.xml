@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_order_list" model="ir.ui.view">
+        <field name="name">dhl.order.list</field>
+        <field name="model">dhl.order</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="order_date"/>
+                <field name="customer_id"/>
+                <field name="source" optional="show"/>
+                <field name="amazon_order_id" optional="hide"/>
+                <field name="total_weight" optional="hide"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount_total" sum="Total"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state in ('pending', 'processing')" decoration-primary="state == 'shipped'" decoration-success="state == 'delivered'" decoration-danger="state in ('failed', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_order_form" model="ir.ui.view">
+        <field name="name">dhl.order.form</field>
+        <field name="model">dhl.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start_processing" string="Start Processing" type="object" invisible="state != 'pending'"/>
+                    <button name="action_create_shipment" string="Create Shipment" type="object" class="btn-primary"
+                            invisible="state not in ('pending', 'processing', 'shipped', 'failed')"/>
+                    <button name="action_cancel" string="Cancel Order" type="object" invisible="state in ('cancelled', 'delivered')"
+                            confirm="Cancel this order and its unsent shipments?"/>
+                    <button name="action_reset_draft" string="Reset to Draft" type="object" invisible="state not in ('cancelled', 'failed')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,processing,shipped,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_view_shipments" icon="fa-truck" invisible="shipment_count == 0">
+                            <field name="shipment_count" widget="statinfo" string="Shipments"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="customer_id" readonly="state not in ('draft', 'pending')"/>
+                            <field name="address_id" readonly="state not in ('draft', 'pending')" context="{'default_customer_id': customer_id}"/>
+                            <field name="order_date"/>
+                        </group>
+                        <group>
+                            <field name="source"/>
+                            <field name="amazon_order_id" invisible="source != 'amazon'"/>
+                            <field name="marketplace" invisible="source != 'amazon'"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products" name="lines">
+                            <field name="line_ids" readonly="state not in ('draft', 'pending')">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="unit_price"/>
+                                    <field name="weight" optional="show"/>
+                                    <field name="subtotal"/>
+                                </list>
+                            </field>
+                            <group class="justify-content-end">
+                                <group class="oe_subtotal_footer">
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="total_weight"/>
+                                    <field name="amount_total"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes"><field name="notes"/></page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_dhl_order_search" model="ir.ui.view">
+        <field name="name">dhl.order.search</field>
+        <field name="model">dhl.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('amazon_order_id', 'ilike', self), ('customer_id', 'ilike', self)]" string="Order / Customer"/>
+                <field name="customer_id"/>
+                <field name="amazon_order_id"/>
+                <filter name="f_pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                <filter name="f_processing" string="Processing" domain="[('state', '=', 'processing')]"/>
+                <filter name="f_shipped" string="Shipped" domain="[('state', '=', 'shipped')]"/>
+                <filter name="f_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="f_amazon" string="Amazon" domain="[('source', '=', 'amazon')]"/>
+                <filter name="f_manual" string="Manual" domain="[('source', '=', 'manual')]"/>
+                <group>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'customer_id'}"/>
+                    <filter name="group_date" string="Order Date" context="{'group_by': 'order_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dhl_order" model="ir.actions.act_window">
+        <field name="name">All Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first order</p>
+            <p>Orders are created manually or imported from Amazon, then turned into DHL shipments.</p>
+        </field>
+    </record>
+    <record id="action_dhl_order_new" model="ir.actions.act_window">
+        <field name="name">New Order</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">form</field>
+    </record>
+    <record id="action_dhl_order_pending" model="ir.actions.act_window">
+        <field name="name">Pending Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'pending')]</field>
+    </record>
+    <record id="action_dhl_order_processing" model="ir.actions.act_window">
+        <field name="name">Processing Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'processing')]</field>
+    </record>
+    <record id="action_dhl_order_shipped" model="ir.actions.act_window">
+        <field name="name">Shipped Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'shipped')]</field>
+    </record>
+    <record id="action_dhl_order_delivered" model="ir.actions.act_window">
+        <field name="name">Delivered Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'delivered')]</field>
+    </record>
+    <record id="action_dhl_order_cancelled" model="ir.actions.act_window">
+        <field name="name">Cancelled Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'cancelled')]</field>
+    </record>
+    <record id="action_dhl_order_failed" model="ir.actions.act_window">
+        <field name="name">Failed Orders</field>
+        <field name="res_model">dhl.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '=', 'failed')]</field>
+    </record>
+</odoo>

@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="dhl_logistics_center.Dashboard">
+        <div class="o_action dhl_dash">
+            <div class="dd_scroll">
+                <div class="dd_page">
+
+                    <!-- ================= Header ================= -->
+                    <header class="dd_head">
+                        <div>
+                            <h1 class="dd_title">Control center</h1>
+                            <p class="dd_sub">
+                                <t t-esc="todayLabel"/>
+                                <t t-if="state.updatedAt"> · Updated <t t-esc="updatedLabel"/>
+                                </t>
+                            </p>
+                        </div>
+                        <div class="dd_tools">
+                            <label class="dd_search">
+                                <i class="fa fa-search" aria-hidden="true"/>
+                                <input type="search" placeholder="Find a shipment, tracking number or recipient" aria-label="Search shipments" t-model="state.query" t-on-keydown="onSearchKey"/>
+                            </label>
+                            <button class="dd_btn dd_btn_icon" t-on-click="() => this.load()" title="Refresh" aria-label="Refresh">
+                                <i t-attf-class="fa fa-refresh #{state.loading ? 'fa-spin' : ''}"/>
+                            </button>
+                            <button class="dd_btn dd_btn_primary" t-on-click="newOrder">New order</button>
+                        </div>
+                    </header>
+
+                    <!-- ================= Loading ================= -->
+                    <div t-if="state.loading &amp;&amp; !state.data" class="dd_skel" aria-busy="true">
+                        <div class="dd_skel_bar w40"/>
+                        <div class="dd_skel_block h120"/>
+                        <div class="dd_skel_row">
+                            <div class="dd_skel_block h200"/>
+                            <div class="dd_skel_block h200"/>
+                        </div>
+                    </div>
+
+                    <!-- ================= Error ================= -->
+                    <div t-elif="state.error &amp;&amp; !state.data" class="dd_error">
+                        <strong>The dashboard could not be loaded</strong>
+                        <p t-esc="state.error"/>
+                        <button class="dd_btn" t-on-click="() => this.load()">Try again</button>
+                    </div>
+
+                    <t t-elif="state.data">
+                        <!-- ================= Health strip ================= -->
+                        <div class="dd_health">
+                            <button t-attf-class="dd_chip tone_#{dhlTone}" t-on-click="openConnection">
+                                <span class="dd_dot"/>
+                                <span class="dd_chip_main">
+                                    <strong t-esc="dhl.label"/>
+                                    <small t-if="dhl.has_connection">
+                                        <t t-esc="dhl.name"/>
+ ·                                        <t t-esc="label(dhl.environment)"/>
+                                    </small>
+                                    <small t-else="">Add credentials to start shipping</small>
+                                </span>
+                            </button>
+                            <button t-attf-class="dd_chip tone_#{amazonTone}" t-on-click="openAmazon">
+                                <span class="dd_dot"/>
+                                <span class="dd_chip_main">
+                                    <strong t-esc="amazon.label"/>
+                                    <small t-if="amazon.available">
+                                        <t t-esc="amazon.name"/> · <t t-esc="label(amazon.environment)"/> · <t t-esc="amazon.region.toUpperCase()"/>
+                                    </small>
+                                    <small t-else="">Configure an Amazon sandbox connection to begin testing</small>
+                                </span>
+                            </button>
+                            <button t-attf-class="dd_chip #{agent.state === 'running' ? 'tone_green' : agent.state === 'error' ? 'tone_red' : 'tone_off'}" t-on-click="openAgent">
+                                <span class="dd_dot"/>
+                                <span class="dd_chip_main">
+                                    <strong>AI agent <t t-esc="label(agent.state).toLowerCase()"/>
+                                    </strong>
+                                    <small t-if="agent.last_run">Last check <t t-esc="ago(agent.last_run)"/>
+                                    </small>
+                                    <small t-else="">No check run yet</small>
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- ================= Pipeline (hero) ================= -->
+                        <section class="dd_route">
+                            <div class="dd_route_head">
+                                <h2>Parcel pipeline</h2>
+                                <span>Where every order and shipment is right now</span>
+                            </div>
+                            <ol class="dd_stations">
+                                <li t-foreach="stations" t-as="st" t-key="st_index" t-attf-class="dd_st #{st.value ? 'has' : ''} #{st.danger ? 'is_problem' : ''}">
+                                    <button class="dd_st_btn" t-on-click="() => this.openStation(st)">
+                                        <span class="dd_node"/>
+                                        <span class="dd_st_num" t-esc="st.value"/>
+                                        <span class="dd_st_label" t-esc="st.label"/>
+                                        <span class="dd_st_hint" t-esc="st.hint"/>
+                                    </button>
+                                </li>
+                            </ol>
+                        </section>
+
+                        <!-- ================= Ledger ================= -->
+                        <div class="dd_ledger">
+                            <button t-foreach="ledger" t-as="row" t-key="row_index" class="dd_ledger_item" t-on-click="() => this.openLedger(row)">
+                                <span class="dd_ledger_label" t-esc="row.label"/>
+                                <span class="dd_ledger_value" t-esc="row.value"/>
+                                <span class="dd_ledger_sub" t-esc="row.sub || ' '"/>
+                            </button>
+                        </div>
+
+                        <div class="dd_cols">
+                            <!-- ============ Main column ============ -->
+                            <div class="dd_main">
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>Shipments created</h2>
+                                        <span class="dd_panel_meta">Last 14 days · <t t-esc="chart.total"/>
+ total</span>
+                                    </div>
+                                    <div t-if="!chart.total" class="dd_empty">
+                                        <strong>No shipments in the last 14 days</strong>
+                                        <span>Open an order and choose Create shipment. New shipments show up here.</span>
+                                    </div>
+                                    <div t-else="" class="dd_chart">
+                                        <div class="dd_chart_max" t-esc="chart.max"/>
+                                        <div class="dd_bars">
+                                            <div t-foreach="chart.bars" t-as="b" t-key="b_index" class="dd_bar" t-att-title="b.day + ': ' + b.count">
+                                                <span class="dd_bar_val" t-if="b.count" t-esc="b.count"/>
+                                                <span t-attf-class="dd_bar_fill #{b.today ? 'today' : ''} #{b.count ? '' : 'zero'}" t-att-style="'height:' + (b.count ? b.h : 0) + '%'"/>
+                                                <span class="dd_bar_day" t-esc="b.showLabel ? b.day : ' '"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>Recent shipments</h2>
+                                        <button class="dd_link" t-on-click="() => this.openList('All shipments', 'dhl.shipment', [])">View all</button>
+                                    </div>
+                                    <div t-if="!state.data.recent_shipments.length" class="dd_empty">
+                                        <strong>No shipments yet</strong>
+                                        <span>Create one from an order and it appears here.</span>
+                                    </div>
+                                    <table t-else="" class="dd_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Shipment</th>
+                                                <th>Recipient</th>
+                                                <th>Tracking</th>
+                                                <th class="r">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.data.recent_shipments" t-as="s" t-key="s.id" t-on-click="() => this.openRecord('dhl.shipment', s.id)">
+                                                <td class="strong" t-esc="s.name"/>
+                                                <td t-esc="s.consignee || '—'"/>
+                                                <td class="mono muted" t-esc="s.tracking || '—'"/>
+                                                <td class="r">
+                                                    <span t-attf-class="dd_pill tone_#{tone(s.state)}" t-esc="label(s.state)"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </section>
+
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>Recent orders</h2>
+                                        <button class="dd_link" t-on-click="() => this.openList('All orders', 'dhl.order', [])">View all</button>
+                                    </div>
+                                    <div t-if="!state.data.recent_orders.length" class="dd_empty">
+                                        <strong>No orders yet</strong>
+                                        <span>Create an order, or connect Amazon later to import them.</span>
+                                        <button class="dd_btn dd_btn_primary mt" t-on-click="newOrder">New order</button>
+                                    </div>
+                                    <table t-else="" class="dd_table">
+                                        <thead>
+                                            <tr>
+                                                <th>Order</th>
+                                                <th>Customer</th>
+                                                <th class="r">Amount</th>
+                                                <th class="r">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr t-foreach="state.data.recent_orders" t-as="o" t-key="o.id" t-on-click="() => this.openRecord('dhl.order', o.id)">
+                                                <td class="strong" t-esc="o.name"/>
+                                                <td t-esc="o.customer"/>
+                                                <td class="r num" t-esc="money(o.amount)"/>
+                                                <td class="r">
+                                                    <span t-attf-class="dd_pill tone_#{tone(o.state)}" t-esc="label(o.state)"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </section>
+
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>Order performance</h2>
+                                        <span class="dd_panel_meta">By status</span>
+                                    </div>
+                                    <div t-foreach="orderRows" t-as="r" t-key="r.key" class="dd_hrow">
+                                        <span class="dd_hrow_label" t-esc="label(r.key)"/>
+                                        <span class="dd_hrow_track">
+                                            <span t-attf-class="dd_hrow_fill tone_#{tone(r.key)}" t-att-style="'width:' + r.pct + '%'"/>
+                                        </span>
+                                        <span class="dd_hrow_n num" t-esc="r.count"/>
+                                    </div>
+                                </section>
+                            </div>
+
+                            <!-- ============ Side column ============ -->
+                            <aside class="dd_side">
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>Needs your attention</h2>
+                                        <span t-if="state.data.attention.length" t-attf-class="dd_count tone_#{attentionTone}" t-esc="state.data.attention.length"/>
+                                    </div>
+                                    <div t-if="!state.data.attention.length" class="dd_clear">
+                                        <span class="dd_clear_icon">✓</span>
+                                        <div>
+                                            <strong>All clear</strong>
+                                            <span>Nothing needs a human right now.</span>
+                                        </div>
+                                    </div>
+                                    <ul t-else="" class="dd_attn">
+                                        <li t-foreach="state.data.attention" t-as="item" t-key="item.key">
+                                            <button t-attf-class="dd_attn_item sev_#{item.severity}" t-on-click="() => this.openTarget(item)">
+                                                <span class="dd_attn_dot"/>
+                                                <span class="dd_attn_text" t-esc="item.text"/>
+                                                <i class="fa fa-angle-right" aria-hidden="true"/>
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </section>
+
+                                <section class="dd_panel">
+                                    <div class="dd_panel_head">
+                                        <h2>AI agent</h2>
+                                        <span t-attf-class="dd_state s_#{agent.state}" t-esc="label(agent.state)"/>
+                                    </div>
+                                    <p class="dd_agent_note">
+                                        <t t-if="agent.last_run">Last check <t t-esc="ago(agent.last_run)"/>
+.                                        <t t-esc="agent.last_summary"/>
+.</t>
+                                    <t t-else="">It has not run a check yet.</t>
+                                </p>
+                                <ul class="dd_subs">
+                                    <li t-foreach="agent.subsystems" t-as="sub" t-key="sub.key">
+                                        <span t-esc="sub.label"/>
+                                        <span t-attf-class="dd_sub_status st_#{sub.status}">
+                                            <t t-if="sub.status === 'active'">Active · <t t-esc="sub.note"/>
+                                            </t>
+                                            <t t-elif="sub.status === 'planned'">Planned · <t t-esc="sub.note"/>
+                                            </t>
+                                            <t t-else="">Off</t>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <div class="dd_today">
+                                    <div>
+                                        <b class="num" t-esc="state.data.today.shipments"/>
+                                        <span>shipments today</span>
+                                    </div>
+                                    <div>
+                                        <b class="num" t-esc="state.data.today.tracking"/>
+                                        <span>tracking events</span>
+                                    </div>
+                                    <div>
+                                        <b class="num" t-esc="state.data.today.orders"/>
+                                        <span>new orders</span>
+                                    </div>
+                                    <div t-attf-class="#{state.data.today.errors ? 'bad' : ''}">
+                                        <b class="num" t-esc="state.data.today.errors"/>
+                                        <span>API errors</span>
+                                    </div>
+                                </div>
+                                <button class="dd_btn dd_btn_block" t-on-click="runCheck" t-att-disabled="state.checking || !agent.id">
+                                    <i t-if="state.checking" class="fa fa-spinner fa-spin"/>
+ Run check now
+                                </button>
+                            </section>
+
+                            <section class="dd_panel">
+                                <div class="dd_panel_head">
+                                    <h2>Tracking updates</h2>
+                                </div>
+                                <div t-if="!state.data.tracking_updates.length" class="dd_empty">
+                                    <strong>No tracking events yet</strong>
+                                    <span>Status changes from DHL appear here as they arrive.</span>
+                                </div>
+                                <ul t-else="" class="dd_feed">
+                                    <li t-foreach="state.data.tracking_updates" t-as="t" t-key="t.id">
+                                        <span t-attf-class="dd_pill tone_#{tone(t.status)}" t-esc="label(t.status)"/>
+                                        <span class="dd_feed_main">
+                                            <b t-esc="t.shipment"/>
+                                            <small t-esc="t.text"/>
+                                        </span>
+                                        <small class="dd_feed_time" t-esc="ago(t.time)"/>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section class="dd_panel">
+                                <div class="dd_panel_head">
+                                    <h2>Recent errors</h2>
+                                </div>
+                                <div t-if="!state.data.recent_errors.length" class="dd_clear">
+                                    <span class="dd_clear_icon">✓</span>
+                                    <div>
+                                        <strong>No errors</strong>
+                                        <span>API calls are succeeding.</span>
+                                    </div>
+                                </div>
+                                <ul t-else="" class="dd_feed">
+                                    <li t-foreach="state.data.recent_errors" t-as="e" t-key="e.id" class="clickable" t-on-click="() => this.openRecord('dhl.api.log', e.id)">
+                                        <span class="dd_pill tone_red">Error</span>
+                                        <span class="dd_feed_main">
+                                            <b t-esc="e.name"/>
+                                            <small t-esc="e.message"/>
+                                        </span>
+                                        <small class="dd_feed_time" t-esc="ago(e.time)"/>
+                                    </li>
+                                </ul>
+                            </section>
+
+                            <section class="dd_panel">
+                                <div class="dd_panel_head">
+                                    <h2>Recent activity</h2>
+                                </div>
+                                <div t-if="!state.data.recent_activity.length" class="dd_empty">
+                                    <strong>No activity yet</strong>
+                                    <span>API calls appear here as a timeline.</span>
+                                </div>
+                                <ol t-else="" class="dd_timeline">
+                                    <li t-foreach="state.data.recent_activity" t-as="a" t-key="a.id" t-att-class="a.success ? 'ok' : 'bad'">
+                                        <span t-esc="a.name"/>
+                                        <small t-esc="ago(a.time)"/>
+                                    </li>
+                                </ol>
+                            </section>
+                        </aside>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </div>
+</t>
+</templates>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_dhl_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">dhl_logistics_center.dashboard</field>
+    </record>
+
+    <!-- Honest placeholders for features that are planned but not built yet -->
+    <record id="action_dhl_soon_amazon" model="ir.actions.client">
+        <field name="name">Amazon</field>
+        <field name="tag">dhl_logistics_center.coming_soon</field>
+        <field name="params" eval="{'title': 'Amazon integration', 'phase': 'Use Amazon > Connections', 'description': 'Amazon connection and sync controls are available under Amazon > Connections. Shipment confirmation write-back is not implemented yet.'}"/>
+    </record>
+    <record id="action_dhl_soon_rates" model="ir.actions.client">
+        <field name="name">Rates</field>
+        <field name="tag">dhl_logistics_center.coming_soon</field>
+        <field name="params" eval="{'title': 'Rates', 'phase': 'Not implemented', 'description': 'No verified DHL rate quote integration is available yet. Do not treat this screen as a confirmed price.'}"/>
+    </record>
+    <record id="action_dhl_soon_reports" model="ir.actions.client">
+        <field name="name">Reports</field>
+        <field name="tag">dhl_logistics_center.coming_soon</field>
+        <field name="params" eval="{'title': 'Reports', 'phase': 'CSV export available', 'description': 'Use Reports > Export CSV for the implemented export types. Additional performance reports remain future work.'}"/>
+    </record>
+    <record id="action_dhl_soon_automation" model="ir.actions.client">
+        <field name="name">Automation Queue</field>
+        <field name="tag">dhl_logistics_center.coming_soon</field>
+        <field name="params" eval="{'title': 'Automation queue', 'phase': 'Partially available', 'description': 'Safe retry queue and scheduled tracking/sync jobs are available where configured. Automatic shipment booking queue is not implemented.'}"/>
+    </record>
+    <record id="action_dhl_help_start" model="ir.actions.client">
+        <field name="name">Getting Started</field>
+        <field name="tag">dhl_logistics_center.coming_soon</field>
+        <field name="params" eval="{'title': 'Getting started', 'phase': 'Quick guide', 'description': 'Set up in this order:', 'steps': ['Settings > General: enter your shipper address.', 'DHL > Connection: create a connection, enter credentials, click Authenticate and Test Connection. The navbar badge turns green.', 'Products: add products with actual package weight and dimensions.', 'Customers: add a customer with a complete delivery address.', 'Orders: create or sync an order, confirm it, then create a shipment.', 'Shipments: validate and create in DHL sandbox, then inspect the stored label and tracking history.', 'Amazon: select Sandbox, configure LWA credentials, test the connection, then sync permitted orders/listings.']}"/>
+    </record>
+</odoo>

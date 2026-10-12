@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_config_settings_dhl" model="ir.ui.view">
+        <field name="name">res.config.settings.dhl</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="95"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="DHL Logistics" string="DHL Logistics" name="dhl_logistics_center"
+                     groups="dhl_logistics_center.group_dhl_manager">
+                    <block title="Shipper (sender) address" help="Printed on every DHL label. Copied onto each new shipment.">
+                        <setting string="Name / Company">
+                            <div class="content-group"><div class="row mt8">
+                                <label for="dhl_shipper_name" class="col-lg-3"/><field name="dhl_shipper_name"/>
+                                <label for="dhl_shipper_company" class="col-lg-3"/><field name="dhl_shipper_company"/>
+                            </div></div>
+                        </setting>
+                        <setting string="Address">
+                            <div class="content-group"><div class="row mt8">
+                                <label for="dhl_shipper_street" class="col-lg-3"/><field name="dhl_shipper_street"/>
+                                <label for="dhl_shipper_street_number" class="col-lg-3"/><field name="dhl_shipper_street_number"/>
+                                <label for="dhl_shipper_zip" class="col-lg-3"/><field name="dhl_shipper_zip"/>
+                                <label for="dhl_shipper_city" class="col-lg-3"/><field name="dhl_shipper_city"/>
+                                <label for="dhl_shipper_country_code" class="col-lg-3"/><field name="dhl_shipper_country_code"/>
+                            </div></div>
+                        </setting>
+                        <setting string="Contact">
+                            <div class="content-group"><div class="row mt8">
+                                <label for="dhl_shipper_email" class="col-lg-3"/><field name="dhl_shipper_email"/>
+                                <label for="dhl_shipper_phone" class="col-lg-3"/><field name="dhl_shipper_phone"/>
+                            </div></div>
+                        </setting>
+                    </block>
+                    <block title="Shipping defaults">
+                        <setting string="Default package weight" help="Used when order products have no weight.">
+                            <field name="dhl_default_weight"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_dhl_settings" model="ir.actions.act_window">
+        <field name="name">General Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'dhl_logistics_center', 'bin_size': False}</field>
+    </record>
+</odoo>

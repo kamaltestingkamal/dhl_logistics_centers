@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="cron_dhl_amazon_sync" model="ir.cron">
+        <field name="name">Amazon: Sync Orders and Listings</field>
+        <field name="model_id" ref="model_dhl_amazon_connection"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_active_connections()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">False</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="priority">20</field>
+    </record>
+    <record id="cron_dhl_safe_retry_queue" model="ir.cron">
+        <field name="name">Logistics: Run Safe Retry Queue</field>
+        <field name="model_id" ref="model_dhl_retry_job"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_run_due()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">False</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="priority">10</field>
+    </record>
+</odoo>

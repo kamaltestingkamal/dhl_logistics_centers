@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_dhl" model="ir.module.category">
+        <field name="name">DHL Logistics</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <!-- Odoo 19: groups hang off a privilege -->
+    <record id="privilege_dhl" model="res.groups.privilege">
+        <field name="name">DHL Logistics</field>
+        <field name="category_id" ref="module_category_dhl"/>
+    </record>
+
+    <record id="group_dhl_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="privilege_id" ref="privilege_dhl"/>
+        <field name="comment">Can work with orders, shipments, tracking and returns. Cannot see credentials or change settings.</field>
+    </record>
+
+    <record id="group_dhl_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="privilege_id" ref="privilege_dhl"/>
+        <field name="implied_ids" eval="[(4, ref('group_dhl_user'))]"/>
+        <field name="comment">Full access incl. DHL credentials, settings, logs and deletion.</field>
+    </record>
+
+    <record id="group_dhl_operator" model="res.groups">
+        <field name="name">Operator</field>
+        <field name="privilege_id" ref="privilege_dhl"/>
+        <field name="implied_ids" eval="[(4, ref('group_dhl_user'))]"/>
+        <field name="comment">Can execute automation tasks and handle day-to-day operations. Cannot access credentials or change critical settings.</field>
+    </record>
+
+    <record id="group_dhl_readonly" model="res.groups">
+        <field name="name">Read-only</field>
+        <field name="privilege_id" ref="privilege_dhl"/>
+        <field name="comment">Can view orders, shipments, tracking and reports. Cannot create, edit or delete business records.</field>
+    </record>
+
+    <!-- Notifications are personal: users only see their own, managers see all -->
+    <record id="rule_dhl_notification_own" model="ir.rule">
+        <field name="name">DHL Notification: own only</field>
+        <field name="model_id" ref="model_dhl_notification"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly'))]"/>
+    </record>
+    <record id="rule_dhl_notification_manager" model="ir.rule">
+        <field name="name">DHL Notification: manager all</field>
+        <field name="model_id" ref="model_dhl_notification"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_manager'))]"/>
+    </record>
+
+    <!-- Personal and logistics records are isolated to the user's enabled companies. -->
+    <record id="rule_dhl_product_company" model="ir.rule">
+        <field name="name">DHL Products: allowed companies</field>
+        <field name="model_id" ref="model_dhl_product"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_customer_company" model="ir.rule">
+        <field name="name">DHL Customers: allowed companies</field>
+        <field name="model_id" ref="model_dhl_customer"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_customer_address_company" model="ir.rule">
+        <field name="name">DHL Customer Addresses: allowed companies</field>
+        <field name="model_id" ref="model_dhl_customer_address"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_order_company" model="ir.rule">
+        <field name="name">DHL Orders: allowed companies</field>
+        <field name="model_id" ref="model_dhl_order"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_order_line_company" model="ir.rule">
+        <field name="name">DHL Order Lines: allowed companies</field>
+        <field name="model_id" ref="model_dhl_order_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_shipment_company" model="ir.rule">
+        <field name="name">DHL Shipments: allowed companies</field>
+        <field name="model_id" ref="model_dhl_shipment"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_shipment_history_company" model="ir.rule">
+        <field name="name">DHL Shipment History: allowed companies</field>
+        <field name="model_id" ref="model_dhl_shipment_history"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_package_company" model="ir.rule">
+        <field name="name">DHL Packages: allowed companies</field>
+        <field name="model_id" ref="model_dhl_package"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_tracking_company" model="ir.rule">
+        <field name="name">DHL Tracking: allowed companies</field>
+        <field name="model_id" ref="model_dhl_tracking"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_return_company" model="ir.rule">
+        <field name="name">DHL Returns: allowed companies</field>
+        <field name="model_id" ref="model_dhl_return"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+
+
+    <!-- Amazon and retry queue company isolation -->
+    <record id="rule_dhl_amazon_connection_company" model="ir.rule">
+        <field name="name">Amazon Connections: allowed companies</field>
+        <field name="model_id" ref="model_dhl_amazon_connection"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_retry_job_company" model="ir.rule">
+        <field name="name">Retry Jobs: allowed companies</field>
+        <field name="model_id" ref="model_dhl_retry_job"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+
+
+    <record id="rule_dhl_api_log_company" model="ir.rule">
+        <field name="name">API Logs: allowed companies</field>
+        <field name="model_id" ref="model_dhl_api_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_sync_log_company" model="ir.rule">
+        <field name="name">Sync Logs: allowed companies</field>
+        <field name="model_id" ref="model_dhl_sync_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+    <record id="rule_dhl_automation_log_company" model="ir.rule">
+        <field name="name">Automation Logs: allowed companies</field>
+        <field name="model_id" ref="model_dhl_automation_log"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('group_dhl_user')), (4, ref('group_dhl_operator')), (4, ref('group_dhl_readonly')), (4, ref('group_dhl_manager'))]"/>
+    </record>
+
+</odoo>

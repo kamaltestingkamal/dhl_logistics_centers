@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- DHL tracking sync. 60 min + small batches because the DHL Unified Tracking API
+         initially allows only 250 calls/day and 1 call/second.
+         (The agent health-check cron is defined in agent_data.xml, do not duplicate it here.) -->
+    <record id="cron_dhl_tracking_update" model="ir.cron">
+        <field name="name">DHL: Update Shipment Tracking</field>
+        <field name="model_id" ref="model_dhl_tracking_cron"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_update_tracking()</field>
+        <field name="interval_number">60</field>
+        <field name="interval_type">minutes</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="priority">5</field>
+    </record>
+</odoo>

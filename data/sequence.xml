@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_dhl_order" model="ir.sequence">
+            <field name="name">DHL Center Order</field>
+            <field name="code">dhl.order</field>
+            <field name="prefix">ORD/</field>
+            <field name="padding">5</field>
+        </record>
+        <record id="seq_dhl_shipment" model="ir.sequence">
+            <field name="name">DHL Center Shipment</field>
+            <field name="code">dhl.shipment</field>
+            <field name="prefix">SHP/</field>
+            <field name="padding">5</field>
+        </record>
+        <record id="seq_dhl_return" model="ir.sequence">
+            <field name="name">DHL Center Return</field>
+            <field name="code">dhl.return</field>
+            <field name="prefix">RET/</field>
+            <field name="padding">5</field>
+        </record>
+    </data>
+</odoo>

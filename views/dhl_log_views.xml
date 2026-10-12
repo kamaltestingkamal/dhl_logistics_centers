@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_dhl_api_log_list" model="ir.ui.view">
+        <field name="name">dhl.api.log.list</field>
+        <field name="model">dhl.api.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" decoration-danger="not success">
+                <field name="create_date" string="When"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="service"/>
+                <field name="name"/>
+                <field name="method"/>
+                <field name="status_code"/>
+                <field name="success" widget="boolean"/>
+                <field name="duration_ms"/>
+                <field name="error_message" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_dhl_api_log_form" model="ir.ui.view">
+        <field name="name">dhl.api.log.form</field>
+        <field name="model">dhl.api.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="service"/>
+                            <field name="connection_id"/>
+                            <field name="method"/>
+                            <field name="endpoint"/>
+                        </group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="status_code"/>
+                            <field name="success"/>
+                            <field name="duration_ms"/>
+                        </group>
+                    </group>
+                    <group string="Error" invisible="not error_message"><field name="error_message" nolabel="1"/></group>
+                    <group string="Request (secrets masked)"><field name="request_body" nolabel="1"/></group>
+                    <group string="Response (secrets masked)"><field name="response_body" nolabel="1"/></group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_dhl_api_log_search" model="ir.ui.view">
+        <field name="name">dhl.api.log.search</field>
+        <field name="model">dhl.api.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="endpoint"/>
+                <field name="error_message"/>
+                <filter name="failed" string="Failed" domain="[('success', '=', False)]"/>
+                <filter name="ok" string="Successful" domain="[('success', '=', True)]"/>
+                <filter name="auth" string="Authentication" domain="[('name', 'ilike', 'Authentication')]"/>
+                <group>
+                    <filter name="group_service" string="Service" context="{'group_by': 'service'}"/>
+                    <filter name="group_name" string="Operation" context="{'group_by': 'name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_dhl_api_log" model="ir.actions.act_window">
+        <field name="name">API Logs</field>
+        <field name="res_model">dhl.api.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_dhl_error_log" model="ir.actions.act_window">
+        <field name="name">Error Logs</field>
+        <field name="res_model">dhl.api.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('success', '=', False)]</field>
+    </record>
+    <record id="action_dhl_auth_log" model="ir.actions.act_window">
+        <field name="name">Authentication Logs</field>
+        <field name="res_model">dhl.api.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('name', 'ilike', 'Authentication')]</field>
+    </record>
+
+    <record id="view_dhl_sync_log_list" model="ir.ui.view">
+        <field name="name">dhl.sync.log.list</field>
+        <field name="model">dhl.sync.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="create_date" string="When"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="source"/>
+                <field name="operation"/>
+                <field name="name"/>
+                <field name="state" widget="badge" decoration-success="state == 'success'" decoration-warning="state == 'partial'" decoration-danger="state == 'failed'"/>
+                <field name="records_processed"/>
+                <field name="records_failed"/>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_dhl_sync_log" model="ir.actions.act_window">
+        <field name="name">Sync Logs</field>
+        <field name="res_model">dhl.sync.log</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No syncs yet</p><p>Amazon and DHL sync runs will be listed here.</p></field>
+    </record>
+
+    <record id="view_dhl_automation_log_list" model="ir.ui.view">
+        <field name="name">dhl.automation.log.list</field>
+        <field name="model">dhl.automation.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0">
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="name"/>
+                <field name="state" widget="badge" decoration-success="state == 'success'" decoration-danger="state == 'failed'" decoration-muted="state == 'skipped'"/>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_dhl_automation_log" model="ir.actions.act_window">
+        <field name="name">Automation History</field>
+        <field name="res_model">dhl.automation.log</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">No automation runs yet</p><p>Scheduled jobs arrive with the automation feature.</p></field>
+    </record>
+</odoo>

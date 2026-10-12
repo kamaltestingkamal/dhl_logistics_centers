@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Amazon SP-API connection and safe synchronization actions -->
+    <record id="view_dhl_amazon_connection_list" model="ir.ui.view">
+        <field name="name">dhl.amazon.connection.list</field>
+        <field name="model">dhl.amazon.connection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle" groups="dhl_logistics_center.group_dhl_manager"/>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="environment" widget="badge" decoration-warning="environment == 'sandbox'" decoration-danger="environment == 'production'"/>
+                <field name="region"/>
+                <field name="marketplace_ids" groups="dhl_logistics_center.group_dhl_manager"/>
+                <field name="state" widget="badge" decoration-success="state == 'connected'" decoration-danger="state == 'auth_error'" decoration-warning="state == 'api_error'"/>
+                <field name="last_order_sync_at"/>
+                <field name="last_product_sync_at"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_amazon_connection_form" model="ir.ui.view">
+        <field name="name">dhl.amazon.connection.form</field>
+        <field name="model">dhl.amazon.connection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" string="Test Sandbox Connection" type="object" class="btn-primary"
+                            groups="dhl_logistics_center.group_dhl_manager,dhl_logistics_center.group_dhl_operator" invisible="environment != 'sandbox'"/>
+                    <button name="action_test_connection" string="Test Production Connection" type="object" class="btn-primary"
+                            groups="dhl_logistics_center.group_dhl_manager" invisible="environment != 'production'"
+                            confirm="This will contact Amazon Production. Continue only after sandbox verification and approval."/>
+                    <button name="action_sync_orders" string="Sync Sandbox Orders" type="object"
+                            groups="dhl_logistics_center.group_dhl_manager,dhl_logistics_center.group_dhl_operator" invisible="environment != 'sandbox'"/>
+                    <button name="action_sync_orders" string="Sync Production Orders" type="object"
+                            groups="dhl_logistics_center.group_dhl_manager" invisible="environment != 'production'"
+                            confirm="This will import data from Amazon Production into Odoo. Continue only after testing and approval."/>
+                    <button name="action_sync_products" string="Sync Sandbox Products" type="object"
+                            groups="dhl_logistics_center.group_dhl_manager,dhl_logistics_center.group_dhl_operator" invisible="environment != 'sandbox'"/>
+                    <button name="action_sync_products" string="Sync Production Products" type="object"
+                            groups="dhl_logistics_center.group_dhl_manager" invisible="environment != 'production'"
+                            confirm="This will import data from Amazon Production into Odoo. Continue only after testing and approval."/>
+                    <field name="state" widget="statusbar" statusbar_visible="disconnected,connected,auth_error,api_error"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Account">
+                            <field name="active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="environment" widget="radio" options="{'horizontal': true}"/>
+                            <field name="region"/>
+                            <field name="seller_id" groups="dhl_logistics_center.group_dhl_manager"/>
+                            <field name="marketplace_ids" groups="dhl_logistics_center.group_dhl_manager"/>
+                        </group>
+                        <group string="Login with Amazon Credentials" groups="dhl_logistics_center.group_dhl_manager">
+                            <field name="lwa_client_id" password="True"/>
+                            <field name="lwa_client_secret" password="True"/>
+                            <field name="refresh_token" password="True"/>
+                            <field name="access_token" password="True" readonly="1"/>
+                            <field name="token_expires_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Synchronization">
+                        <group>
+                            <field name="last_connected" readonly="1"/>
+                            <field name="last_order_sync_at" readonly="1"/>
+                            <field name="last_product_sync_at" readonly="1"/>
+                            <field name="product_sync_marketplace_id" readonly="1" groups="dhl_logistics_center.group_dhl_manager"/>
+                            <field name="product_sync_marketplace_index" readonly="1" groups="dhl_logistics_center.group_dhl_manager"/>
+                        </group>
+                        <group>
+                            <field name="sync_order_count" readonly="1"/>
+                            <field name="sync_product_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Last Error" invisible="not last_error" groups="dhl_logistics_center.group_dhl_manager">
+                        <field name="last_error" readonly="1" nolabel="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        Sandbox is the default to prevent accidental production calls. Order synchronization uses Orders API v2026-01-01. Recipient details are imported only when the seller authorization and SP-API roles permit them. Orders without usable address, currency, SKU, title, or price data are not fabricated; check Sync History and Notifications.
+                        Product sync imports listing title, SKU and ASIN when returned. Images, weight, dimensions, and customs data are not guessed.
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dhl_amazon_connection" model="ir.actions.act_window">
+        <field name="name">Amazon Connections</field>
+        <field name="res_model">dhl.amazon.connection</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Connect Amazon SP-API</p><p>Configure LWA credentials, authorize the seller account, and then synchronize orders and listings.</p></field>
+    </record>
+
+    <!-- Safe retry queue: only idempotent reads/syncs are retryable. DHL shipment creation is intentionally excluded. -->
+    <record id="view_dhl_retry_job_list" model="ir.ui.view">
+        <field name="name">dhl.retry.job.list</field>
+        <field name="model">dhl.retry.job</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="state == 'failed'" decoration-warning="state in ('pending', 'retrying')" decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="operation"/>
+                <field name="amazon_connection_id"/>
+                <field name="shipment_id"/>
+                <field name="state" widget="badge"/>
+                <field name="retry_count"/>
+                <field name="next_attempt_at"/>
+                <field name="last_attempt_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dhl_retry_job_form" model="ir.ui.view">
+        <field name="name">dhl.retry.job.form</field>
+        <field name="model">dhl.retry.job</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_retry_now" string="Retry Now" type="object" class="btn-primary" invisible="state == 'done'" groups="dhl_logistics_center.group_dhl_manager,dhl_logistics_center.group_dhl_operator"/>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,retrying,done,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="operation" readonly="1"/>
+                            <field name="company_id" readonly="1"/>
+                            <field name="amazon_connection_id" readonly="1"/>
+                            <field name="shipment_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="retry_count" readonly="1"/>
+                            <field name="max_retries" readonly="1"/>
+                            <field name="next_attempt_at" readonly="1"/>
+                            <field name="last_attempt_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Last Error"><field name="last_error" nolabel="1" readonly="1"/></group>
+                    <div class="alert alert-warning" role="alert">Only safe Amazon read/sync and DHL tracking operations are allowed here. DHL shipment creation, cancellation, and other irreversible actions are never automatically retried.</div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_dhl_retry_job" model="ir.actions.act_window">
+        <field name="name">Safe Retry Queue</field>
+        <field name="res_model">dhl.retry.job</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', 'in', ('pending', 'retrying', 'failed'))]</field>
+    </record>
+
+    <!-- Report export wizard -->
+    <record id="view_dhl_report_wizard_form" model="ir.ui.view">
+        <field name="name">dhl.report.wizard.form</field>
+        <field name="model">dhl.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Export Logistics Report">
+                <group>
+                    <field name="report_type"/>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_export_csv" string="Export CSV" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_dhl_report_wizard" model="ir.actions.act_window">
+        <field name="name">Export Logistics Report</field>
+        <field name="res_model">dhl.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_dhl_return_list_day3" model="ir.ui.view">
+        <field name="name">dhl.return.list</field>
+        <field name="model">dhl.return</field>
+        <field name="inherit_id" ref="view_dhl_return_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='name']" position="after">
+                <field name="source" optional="hide"/>
+                <field name="amazon_return_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_dhl_return_form_day3" model="ir.ui.view">
+        <field name="name">dhl.return.form</field>
+        <field name="model">dhl.return</field>
+        <field name="inherit_id" ref="view_dhl_return_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="after">
+                <group string="External Source">
+                    <field name="source" readonly="1"/>
+                    <field name="amazon_return_id" readonly="1"/>
+                    <field name="marketplace" readonly="1"/>
+                    <field name="last_sync_at" readonly="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -54,9 +54,11 @@ export const dhlNotificationService = {
         }
 
         function toast(payload) {
+            console.log("[DHL Notification] Toast triggered:", payload);
             const uid = ++seq;
             const duration = TOAST_MS[payload.type] || 6000;
             state.toasts.push({ ...payload, uid, duration });
+            console.log("[DHL Notification] Total toasts:", state.toasts.length);
             while (state.toasts.length > MAX_TOASTS) {
                 dismissToast(state.toasts[0].uid);
             }

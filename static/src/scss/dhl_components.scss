@@ -116,7 +116,7 @@
     border: 2px solid #D40A1D;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(212, 10, 29, 0.15);
-    z-index: 1000;
+    z-index: 9999;
     padding: 8px 0;
   }
 
@@ -164,7 +164,7 @@
   .dhl_panel {
     min-width: 320px;
     max-width: 400px;
-    max-height: 480px;
+    max-height: 500px;
     background: #ffffff;
     border: 2px solid #D40A1D;
     border-radius: 12px;

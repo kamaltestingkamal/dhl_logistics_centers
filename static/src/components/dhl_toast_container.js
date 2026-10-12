@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useState } from "@odoo/owl";
+import { Component, onMounted, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
@@ -13,6 +13,10 @@ export class DhlToastContainer extends Component {
         this.dhl = useService("dhl_notification");
         this.action = useService("action");
         this.state = useState(this.dhl.state);
+
+        onMounted(() => {
+            console.log("[DHL ToastContainer] Mounted. Toasts count:", this.state.toasts.length);
+        });
     }
 
     icon(type) {
